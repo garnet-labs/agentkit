@@ -1,0 +1,36 @@
+name: Garnet AgentKit CI
+on:
+  workflow_dispatch:
+jobs:
+  dep-install:
+    name: Dependency Install (Garnet)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Garnet Runtime Visibility
+        uses: garnet-org/action@v2
+        with:
+          api_token: ${{ secrets.GARNET_API_TOKEN }}
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: ./typescript
+      - name: Install TypeScript dependencies
+        working-directory: ./typescript
+        run: pnpm install --frozen-lockfile
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install uv
+        run: pip install uv
+      - name: Install Python dependencies
+        working-directory: ./python/coinbase-agentkit
+        run: uv sync --all-extras --dev
